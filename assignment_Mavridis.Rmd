@@ -1,0 +1,509 @@
+---
+author: "Mavridis Efthymios"
+email: "efth.mavridis@mc-class.gr"
+UoD_ID: "100731060"
+date: "2024-01-28"
+title: "Student: MSc Big Data Analytics"
+subtitle: "Statistical Techniques Assessment Portfolio"
+output:
+  pdf_document:
+    latex_engine: xelatex
+toc: true
+---
+```{r}
+# Ορίζουμε τα δεδομένα
+name <- "Mavridis Efthymios"
+date <- "3/1/2024"
+
+
+data <- data.frame(Name = name, Date = date)
+
+
+file_path <- file.path(getwd(), "output_file.txt")
+write.table(data, file = file_path, sep = "\t", row.names = FALSE, col.names = TRUE)
+
+
+cat("Τα δεδομένα εγγράφηκαν στον ακόλουθο φάκελο:", getwd(), "\n")
+cat("Το αρχείο ονομάζεται Mavridis_file.txt.\n")
+```
+
+
+#1.Introduction:
+The present analysis utilizes the R programming language to conduct a comprehensive examination of a dataset containing information related to the health and diabetic status of a population. The objective of the analysis is to explore potential correlations and parameters influencing individuals' health, as well as to assess the impact of diabetic conditions on various characteristics.
+
+#Abstract:
+This study constitutes an analysis of health and diabetic status data within a population, employing the R programming language. With a focused approach on statistical analysis, missing values were replaced, and further data processing was performed, including tests such as ANOVA and the Mann-Whitney U test. The analysis aimed to investigate relationships between categorical and numerical variables, along with evaluating the influence of diabetic conditions. The results yield interesting findings that may contribute to understanding factors affecting the population's health and their relationship with diabetic status.
+
+```{r}
+install.packages("readxl")
+library(readxl)
+
+df <- read_excel("C:/Users/efthi/Desktop/Mεταπτυχιακο/στατιστικη/dataset assignment/diabetes_70k_assignment.xlsx")
+d1=data.frame(df)
+
+```
+In the above R script, initially, it reads an Excel file and stores the data in a dataframe named "df." Subsequently, it replaces missing values (NA) with zero (0) only for specific columns, as defined in each code line. The columns for which missing values are replaced are "Diabetes_012," "HighBP," "HighChol," and "CholCheck." This process allows the extraction of statistical information without compromising the reliability of the data due to missing values.
+```{r}
+
+df <- read_excel("C:/Users/efthi/Desktop/Mεταπτυχιακο/στατιστικη/dataset assignment/diabetes_70k_assignment.xlsx")
+
+
+df$Diabetes_012 <- ifelse(is.na(df$Diabetes_012) & df$Diabetes_012 != 0, 0, df$Diabetes_012)
+df$HighBP <- ifelse(is.na(df$HighBP) & df$HighBP != 0, 0, df$HighBP)
+df$HighChol <- ifelse(is.na(df$HighChol) & df$HighChol != 0, 0, df$HighChol)
+df$CholCheck <- ifelse(is.na(df$CholCheck) & df$CholCheck != 0, 0, df$CholCheck)
+
+
+
+
+```
+This command will attempt to calculate descriptive statistics for all numeric variables in the DataFrame df. In the following R script, significant data processing is performed on a dataframe containing information about diabetes. First, an Excel file is read, and the data is stored in the "df" dataframe. Subsequently, the replacement of "NA" values (Not Available) with the number 0 occurs in specific columns, ensuring that the replacement is done only if the initial value is not already 0. This helps maintain the significance of zero values that may have a different meaning in the context of the data.
+In the next section, the "psych" package is used to generate descriptive statistics for all numeric variables in the dataframe. These statistics provide an overview of the data distribution, including mean, median, range, standard deviation, and other useful information. This analysis offers insights into the basic statistical properties of the numeric features of the dataset and can be used for data preparation for further analysis.
+```{r}
+
+install.packages("psych")
+library(psych)
+
+
+describe(df)
+
+
+```
+In the above R script, an Excel file is read, and the data is stored in a dataframe with the variable "df." Subsequently, the script performs the replacement of "NA" values (Not Available) with the number 0 in specific columns. This process ensures that empty values are replaced with zeros while preserving any pre-existing zeros. This scenario is crucial for proper data processing and avoiding the loss of information that existing zeros may carry.
+```{r}
+# Διαβάστε το αρχείο Excel και αποθηκεύστε τα δεδομένα σε ένα dataframe
+df <- read_excel("C:/Users/efthi/Desktop/Mεταπτυχιακο/στατιστικη/dataset assignment/diabetes_70k_assignment.xlsx")
+
+# Αντικατάσταση των NA με 0 μόνο για συγκεκριμένες στήλες
+df$Smoker <- ifelse(is.na(df$Smoker) & df$Smoker != 0, 0, df$Smoker)
+df$Stroke <- ifelse(is.na(df$Stroke) & df$Stroke != 0, 0, df$Stroke)
+df$HeartDiseaseorAttack <- ifelse(is.na(df$HeartDiseaseorAttack) & df$HeartDiseaseorAttack != 0, 0, df$HeartDiseaseorAttack)
+df$PhysActivity <- ifelse(is.na(df$PhysActivity) & df$PhysActivity != 0, 0, df$PhysActivity)
+df$Fruits <- ifelse(is.na(df$Fruits) & df$Fruits != 0, 0, df$Fruits)
+df$Veggies <- ifelse(is.na(df$Veggies) & df$Veggies != 0, 0, df$Veggies)
+df$HvyAlcoholConsump <- ifelse(is.na(df$HvyAlcoholConsump) & df$HvyAlcoholConsump != 0, 0, df$HvyAlcoholConsump)
+df$AnyHealthcare <- ifelse(is.na(df$AnyHealthcare) & df$AnyHealthcare != 0, 0, df$AnyHealthcare)
+df$NoDocbcCost <- ifelse(is.na(df$NoDocbcCost) & df$NoDocbcCost != 0, 0, df$NoDocbcCost)
+
+
+
+
+```
+In the above R script, a vector is defined containing the names of the columns we want to process. Using the `lapply` function, the script applies the replacement of "NA" values with the number 0 only for the specified columns. This ensures the preservation of existing 0 values while simultaneously filling in the missing values (NA) with zeros. The process is crucial for the proper handling of missing values in specific variables of the dataframe.
+```{r}
+columns_to_process <- c("MentHlth", "PhysHlth", "DiffWalk", "Sex", "Age", "Education", "Income")
+
+# Αντικατάσταση των NA με 0 μόνο για συγκεκριμένες στήλες
+df[columns_to_process] <- lapply(df[columns_to_process], function(x) ifelse(is.na(x) & x != 0, 0, x))
+
+
+```
+The R code conducts an Analysis of Variance (ANOVA) to examine the statistical significance of the relationship between age (Age) and physical health (PhysHlth), mental health (MentHlth), as well as gender (Sex). The ANOVA results are presented in the table, where the column "Df" refers to degrees of freedom, "Sum Sq" represents the sum of squares, "Mean Sq" denotes the mean sum of squares, "F value" is the F statistic, and "Pr(>F)" indicates the p-value.
+
+The p-values are low (very close to zero), indicating statistically significant relationships. Specifically, age, physical health, mental health, and gender appear to be significant predictive factors for age. P-values <2e-16 suggest that these relationships are statistically significant. Overall, the ANOVA model confirms a significant correlation among the studied variables.
+
+```{r}
+
+model=aov(d1$Age~d1$PhysHlth+d1$MentHlth+d1$Sex,data=d1)
+
+
+# Εκτύπωση των αποτελεσμάτων του τεστ ANOVA
+summary(model)
+
+```
+In the R code, the "Sex" column is converted to an integer value using `as.integer`. Subsequently, a new variable "Gender" is created using `factor`, representing the gender (Female/Male) based on the values in the "Sex" column. The variable "Gender" is now a categorical variable with two levels. This process is useful for representing gender in a format that can be more easily utilized in statistical analyses and visualizations.
+```{r}
+df$Sex <- as.integer(df$Sex)
+
+# Δημιουργία μιας νέας μεταβλητής 'Gender' με βάση τη στήλη 'Sex'
+df$Gender <- factor(ifelse(df$Sex == 0, "Female", "Male"))
+
+```
+In the following R code, a new categorical variable "Gender" is created based on the "Sex" column. Subsequently, a two-way ANOVA (Analysis of Variance) model is executed using the `aov` function. The model examines the relationship between age ("Age") and health variables ("PhysHlth" and "MentHlth"), considering the factor of gender ("Gender"). The categorical variable "Gender" is automatically transformed into two levels ("Female" and "Male"). The results of the model can be interpreted to understand the impact of these factors on age..
+```{r}
+df$Gender = factor(ifelse(df$Sex == 0, "Female", "Male"))
+
+model=aov(df$Age~df$PhysHlth+df$MentHlth+df$Gender,data=df)
+```
+
+
+
+```{r}
+table(df$Gender)
+
+unique(df$Sex)
+
+
+
+```
+The provided R code utilizes the `aov` function to perform an Analysis of Variance (ANOVA) to investigate whether there are statistically significant differences in BMI levels among different categories of diabetic status. The results indicate significant differences among diabetic status categories in BMI levels, as the p-value is very small (Pr(>F) < 2e-16).
+This suggests that various categories of diabetic status significantly impact BMI levels. The ANOVA model contributes to recognizing the statistical significance of differences between groups, aiding in understanding the effect of diabetic status on BMI levels in your data.
+
+```{r}
+#Null Hypothesis (H0): Δεν υπάρχουν στατιστικά σημαντικές διαφορές στα επίπεδα BMI μεταξύ των διαφόρων κατηγοριών διαβητικής κατάστασης.
+
+#H1: Υπάρχουν στατιστικά σημαντικές διαφορές στα επίπεδα BMI μεταξύ των διαφόρων κατηγοριών διαβητικής κατάστασης.
+
+model_bmi <- aov(df$BMI ~ df$Diabetes_012, data = df)
+summary(model_bmi)
+```
+The provided R code performs an Analysis of Variance (ANOVA) to examine whether there are statistically significant differences in age levels (Age) among various categories of diabetic status and gender (Gender). The results indicate significant differences in age levels among different categories of diabetic status and gender, as the p-values are very small (Pr(>F) < 2e-16 for diabetic status and Pr(>F) = 3.37e-15 for gender).
+
+This suggests that both diabetic status and gender significantly influence age levels. The use of ANOVA helps you identify statistically significant differences between groups and understand how diabetic status and gender are related to age in your data.
+```{r}
+#Null Hypothesis (H0): Δεν υπάρχουν στατιστικά σημαντικές διαφορές στα επίπεδα ηλικίας (Age) μεταξύ των διαφόρων κατηγοριών διαβητικής κατάστασης
+#Εναλλακτική Υπόθεση (H1) για Age:H1: Υπάρχουν στατιστικά σημαντικές διαφορές στα επίπεδα ηλικίας μεταξύ των διαφόρων κατηγοριών διαβητικής κατάστασης.
+model_age <- aov(df$Age ~ df$Diabetes_012+df$Gender, data = df)
+summary(model_age)
+
+```
+The provided R code conducts an Analysis of Variance (ANOVA) to examine whether there are statistically significant differences in education levels among various categories of diabetic status and gender (Gender). The results show significant differences in education levels (Pr(>F) < 2e-16) among different categories of diabetic status and gender.
+
+This suggests that both diabetic status and gender significantly influence education levels. The p-value < 2e-16 indicates that the groups differ statistically in education levels. This code is useful for identifying the factors that impact education levels and understanding how diabetic status and gender are related to education within your dataset.
+```{r}
+#Δεν υπάρχουν στατιστικά σημαντικές διαφορές στα επίπεδα εκπαίδευσης (Education) μεταξύ των διαφόρων κατηγοριών διαβητικής κατάστασης.
+#H1: Υπάρχουν στατιστικά σημαντικές διαφορές στα επίπεδα εκπαίδευσης μεταξύ των διαφόρων κατηγοριών διαβητικής κατάστασης.
+model_education <- aov(df$Education ~ df$Diabetes_012+df$Gender, data = df)
+summary(model_education)
+```
+The above R code generates a frequency table for the two categorical variables, "Diabetes_012" and "Gender," within your dataframe (possibly named df). The frequency table highlights the number of observations for each combination of values for the two variables.
+
+In the resulting frequency table, each row corresponds to a value of the variable "Diabetes_012" (0.0, 1.0, 2.0), while each column corresponds to a value of the variable "Gender" (Female, Male). The numbers in the cells of the table represent the count of observations for each combination.
+
+For example, there are 664 observations where the variable "Diabetes_012" has a value of 1.0, and the variable "Gender" has a value of "Female." This table aids in visualizing and understanding the relationships between the two categorical variables in the context of your dataset.
+```{r}
+# Υποθέτουμε ότι df είναι το όνομα του dataframe
+# και Diabetes_012, Sex είναι οι κατηγορικές μεταβλητές
+
+# Πίνακας συχνοτήτων
+#Η συσταδοποίηση δεν είναι κατάλληλη για αριθμητικές μεταβλητές. Εντούτοις, μπορούμε να χρησιμοποιήσουμε τον πίνακα συχνοτήτων (frequency table) ή τον πίνακα συσχέτισης (correlation table) για να εξετάσουμε τις σχέσεις μεταξύ των κατηγορικών μεταβλητών.
+#Ας δημιουργήσουμε έναν πίνακα συχνοτήτων για τις δύο κατηγορικές μεταβλητές "Diabetes_012" και "Sex" χρησιμοποιώντας τη συνάρτηση table στο R
+table_freq <- table(df$Diabetes_012, df$Gender)
+print(table_freq)
+```
+The above R code calculates a contingency table for the two categorical variables, "Diabetes_012" and "Gender," using the previously generated frequency table. This table contains the percentages of each value of the variable "Gender" for each value of the variable "Diabetes_012."
+
+For example, 85.06% of observations with a value of "0.0" in the variable "Diabetes_012" correspond to the "Female" category, while 83.38% correspond to the "Male" category.
+
+This table helps in understanding the relationship between the two categorical variables by providing percentage relationships that can be used for further analysis or visualization of the data.
+
+```{r}
+# Πίνακας συσχέτισης
+#Στη συνέχεια, μπορούμε να υπολογίσουμε τον πίνακα συσχέτισης (contingency table) για να εξετάσουμε τη σχέση μεταξύ των δύο κατηγορικών μεταβλητών:
+table_corr <- prop.table(table_freq, margin = 2)
+print(table_corr)
+```
+The provided R code uses the chi-squared (χ2) test to assess the statistical significance of the relationship between the two categorical variables "Diabetes_012" and "Gender." The chi-squared test table presents a chi-squared statistic (X-squared), the degrees of freedom (df), and the p-value.
+
+The p-value is very low (1.574e-08), indicating that we reject the null hypothesis that there is no statistically significant relationship between the two variables. This suggests that there is a statistically significant association between diabetic categories and gender.
+
+Therefore, we can conclude that diabetic status is statistically significantly correlated with gender, and this statistical significance is supported by the very low p-value.
+```{r}
+# Υπολογισμός του χ2
+#Σημείωση: Ο πίνακας συσχέτισης υπολογίζει το ποσοστό των συχνοτήτων σε σχέση με το σύνολο των στηλών.Αυτοί οι πίνακες παρέχουν στατιστικές πληροφορίες σχετικά με τη σχέση μεταξύ των διαβητικών κατηγοριών και του φύλου. Τα στοιχεία των πινάκων μας δίνουν τις συχνότητες εμφάνισης κάθε συνδυασμού και τα ποσοστά συχνότητας για την κάθε κατηγορία.Επιπλέον, μπορούμε να χρησιμοποιήσουμε τον δείκτη κατάλληλότητας (χ2) για να εξετάσουμε εάν υπάρχει στατιστικά σημαντική σχέση μεταξύ των δύο μεταβλητών
+
+
+chi_squared <- chisq.test(table_freq)
+print(chi_squared)
+
+#Ο πίνακας χ2-test παρέχει πληροφορίες σχετικά με το αν υπάρχει στατιστικά σημαντική σχέση μεταξύ των δύο κατηγορικών μεταβλητών. Αν το p-value είναι χαμηλό, τότε απορρίπτεται η μηδενική υπόθεση και υποδεικνύει ότι υπάρχει στατιστικά σημαντική σχέση.
+
+
+```
+The `str` function displays information about the data type and the first values of a variable. Subsequently, you convert the variable `df$Diabetes_012` to a numeric format using the `as.numeric` function.The execution of the code reveals that the variable `df$Diabetes_012` is currently in a character format (chr), possibly because it contains alphanumeric values such as "0.0", "2.0," etc. Converting it to a numeric format is essential for further analysis or statistical tests that require numeric variables.
+```{r}
+# Υποθέτουμε ότι df είναι το όνομα του dataframe
+str(df$Diabetes_012)
+df$Diabetes_012 <- as.numeric(df$Diabetes_012)
+```
+The following R code generates a scatter plot using the variables "Age" and "PhysHlth" from the dataframe "df." The plot illustrates the relationship between age (Age) and physical health (PhysHlth). The color coding is based on the variable "Diabetes_012." This variable likely contains different categories or values, and the various colors in the scatter plot correspond to different categories of "Diabetes_012." Thus, the graph allows us to discern the dispersion of points in relation to the categories of the variable "Diabetes_012" and to assess potential qualitative differences in the relationship between age and physical health based on diabetes status.
+```{r}
+# Υποθέτουμε ότι df είναι το όνομα του dataframe
+str(df$Diabetes_012)
+df$Diabetes_012 <- as.numeric(df$Diabetes_012)
+
+# Scatter plot με χρωματική κωδικοποίηση βάσει της μεταβλητής "Diabetes_012"
+plot(df$Age, df$PhysHlth, main = "Scatter Plot: Age vs. PhysHlth", xlab = "Age", ylab = "PhysHlth", col = df$Diabetes_012 + 1)
+
+
+# Μετατροπή της μεταβλητής Diabetes_012 σε αριθμητική
+df$Diabetes_012 <- as.numeric(df$Diabetes_012)
+```
+In the boxplot, the horizontal axis (x) corresponds to different categories of "Diabetes_012," while the vertical axis (y) corresponds to ages. Each box represents the variation in ages within each category, and different color shades represent the various categories of the variable "Diabetes_012." The plot allows us to compare the distribution of ages across different diabetes statuses.
+```{r}
+
+# Εγκατάσταση και φόρτωση του πακέτου ggplot2, αν δεν έχετε ήδη
+install.packages("ggplot2")
+library(ggplot2)
+
+# Μετατροπή της μεταβλητής Diabetes_012 σε παράγοντα
+df$Diabetes_012 <- as.factor(df$Diabetes_012)
+
+# Boxplot για μεταβλητή "Age" ανά κατηγορία της μεταβλητής "Diabetes_012" με χρήση ggplot2
+ggplot(df, aes(x = Diabetes_012, y = Age, fill = Diabetes_012)) +
+  geom_boxplot() +
+  labs(title = "Boxplot: Age by Diabetes_012", x = "Diabetes_012", y = "Age") +
+  theme_minimal()
+
+
+```
+```{r}
+ #Μετατροπή των μεταβλητών Diabetes_012 και Sex σε παράγοντες
+df$Diabetes_012 <- as.factor(df$Diabetes_012)
+df$Sex <- as.factor(df$Sex)
+
+# Boxplot για μεταβλητή "Age" ανά κατηγορία των μεταβλητών "Diabetes_012" και "Sex" με χρήση ggplot2
+ggplot(df, aes(x = Diabetes_012, y = Age, fill = Sex)) +
+  geom_boxplot() +
+  labs(title = "Boxplot: Age by Diabetes and Sex", x = "Diabetes_012", y = "Age", fill = "Sex") +
+  theme_minimal()
+#Σίγουρα, με βάση τις πληροφορίες που μοιραστήκατε, μπορούμε να δημιουργήσουμε δύο scatter plots και δύο boxplots για τις μεταβλητές "Age" και "PhysHlth", λαμβάνοντας υπόψη και την κατηγορική μεταβλητή "Diabetes_012".Αν η μεταβλητή "Diabetes_012" περιέχει διακριτικές κατηγορίες, η παρακάτω κώδικας θα δημιουργήσει τα επιθυμητά γραφήματα:
+```
+
+
+
+```{r}
+# Scatter plot για μεταβλητές "Age" και "PhysHlth" με χρήση ggplot2
+ggplot(df, aes(x = Age, y = PhysHlth, color = Diabetes_012, shape = Sex)) +
+  geom_point() +
+  labs(title = "Scatter Plot: Age vs. PhysHlth", x = "Age", y = "PhysHlth", color = "Diabetes_012", shape = "Sex") +
+  theme_minimal()
+#Αυτός ο κώδικας θα δημιουργήσει ένα scatter plot που παρουσιάζει τη σχέση μεταξύ της ηλικίας ("Age") και της φυσικής υγείας ("PhysHlth"), με τα χρώματα να αντιπροσωπεύουν τις διάφορες κατηγορίες διαβήτη ("Diabetes_012") και τα σύμβολα να αντιπροσωπεύουν το φύλο ("Sex").Παρατηρήστε ότι μπορείτε να αλλάξετε τις μεταβλητές στον κώδικα ανάλογα με τα ενδιαφέροντά σας.
+```
+The provided R code performs a linear regression between the dependent variable "Diabetes_012" and two independent variables, "Age" and "PhysHlth." The regression results are presented in the summary table.
+
+From the regression summary table, we can infer the following:
+
+1. **Statistical Significance:** The coefficients for the variables "Age" and "PhysHlth" are statistically significant (significant p-value < 0.05). This indicates a statistically significant relationship between these variables and "Diabetes_012."
+
+2. **Direction of the Relationship:** The estimates of the coefficients (Estimate) for "Age" and "PhysHlth" are positive. This means that as age and levels of physical health increase, the probability of the variable "Diabetes_012" increasing also rises.
+
+3. **Interpretation of R-squared:** The R-squared value is low (0.06246), suggesting that a small percentage of the variance in the variable "Diabetes_012" can be explained by the variables "Age" and "PhysHlth." While the model is statistically significant, its ability to explain the variance is not very strong.
+
+Overall, the model demonstrates statistical significance, but its predictive ability is limited, as indicated by the low R-squared.
+
+```{r}
+# Μετατροπή της μεταβλητής Diabetes_012 σε αριθμητική
+df$Diabetes_012 <- as.numeric(as.character(df$Diabetes_012))
+
+# Έλεγχος για πιθανές αλλαγές
+str(df$Diabetes_012)
+
+# Εκτέλεση γραμμικής παλινδρόμησης
+model <- lm(Diabetes_012 ~ Age + PhysHlth, data = df)
+summary(model)
+
+```
+The result of multiple linear regression provides statistical information for each variable in the model and offers insights into the significance of coefficients, R-squared, the F-statistic, and more.
+
+Specifically:
+
+- **Coefficients:** These indicate how each variable affects the dependent variable. For example, an increase in Age10.0 by one unit is associated with an increase in the dependent variable Diabetes_012 by 0.1583088.
+
+- **p-values (Pr(>|t|)):** These show the significance of each coefficient. Typically, small p-values (e.g., < 0.05) indicate statistical significance. For instance, the coefficient for Age10.0 has a very small p-value (< 2e-16), indicating statistical significance.
+
+- **Residual standard error:** It indicates how much the actual data deviate from the model's predictions. Here, it's approximately 0.6276.
+
+- **Multiple R-squared (R^2):** It shows how well the model explains the dependent variable's variance. A higher R^2 indicates better model fit to the data. Here, R^2 is about 0.1824.
+
+- **F-statistic and p-value:** They provide information about whether the model is overall statistically significant. In this case, the p-value is < 2.2e-16, indicating that the model is overall statistically significant.
+
+Overall, your model seems to explain a small percentage of the dependent variable's variance, but there are statistically significant associations between certain variables and Diabetes_012.
+```{r}
+# Εκτέλεση πολλαπλής γραμμικής παλινδρόμησης
+mlr_model <- lm(Diabetes_012 ~ Age + HighBP + HighChol + CholCheck + BMI + Smoker + Stroke + HeartDiseaseorAttack + PhysActivity + Fruits + Veggies + HvyAlcoholConsump + AnyHealthcare + NoDocbcCost + GenHlth + MentHlth + PhysHlth + DiffWalk + Sex + Education + Income, data = df)
+
+# Εκτύπωση των αποτελεσμάτων
+summary(mlr_model)
+
+
+
+
+```
+The Mann-Whitney U test is a non-parametric test used to compare the means of two independent samples. In your case, it is applied to test whether there is a statistically significant difference in the distributions between two groups, for example, between patients with and without diabetes. The result you see is from the "Wilcoxon rank sum test with continuity correction," which is a non-parametric test for comparing two independent samples, assuming they come from the same continuous distribution. In this specific case, the test is applied to the variable `Diabetes_012` with respect to the variable `Sex`.
+
+Let's analyze the results:
+
+- **W = 405789164:** This is the Wilcoxon rank sum statistic, measuring the sum of the individual ranks of the two samples. The larger the W, the more likely there is a significant difference between the two samples.
+
+- **p-value = 1.751e-08:** The p-value is very small, below significance levels like 0.05. This indicates that there are statistically significant differences between the two groups. In other words, there is a probability that the two samples do not come from the same distribution.
+
+- **Alternative hypothesis:** "The true location shift is not equal to 0." This suggests that there is a significant difference in location shift between the two groups.
+
+Overall, the results suggest that there is a statistically significant difference in the distribution of the two groups based on the variable `Diabetes_012`.
+```{r}
+# Εκτέλεση Mann-Whitney U test για τη μεταβλητή "diabetes_12" μεταξύ ομάδων με και χωρίς διαβήτη
+result <- wilcox.test(df$Diabetes_012 ~ df$Sex, data = df)
+
+# Εκτύπωση των αποτελεσμάτων
+print(result)
+```
+Test Statistic: 14.2566, with degrees of freedom df = 774.48.
+
+The test statistic estimates the size of the difference between your groups in relation to expected random variance.
+p-value: 0.
+
+The p-value is very small, much smaller than commonly chosen levels of significance (such as 0.05). This indicates a statistically significant difference between the groups.
+Trimmed Mean Difference: -1.1481.
+
+The difference in trimmed means between your groups.
+95% Confidence Interval: -1.3062 to -0.99.
+
+The confidence interval for the estimated difference of trimmed means.
+Explanatory Measure of Effect Size: 0.27.
+
+The explanatory measure of effect size (the mentioned value 0.27) provides an estimate of the intensity of the association between the groups.
+Overall, the results suggest a statistically significant difference in ages between the two groups, with the second group (Diabetes_012 = 1) having a lower mean age compared to the first group (Diabetes_012 = 0).
+```{r}
+# Εισαγωγή του πακέτου 'WRS2', αν δεν έχετε ήδη
+install.packages("WRS2")
+library(WRS2)
+
+# Δημιουργία ενός νέου dataframe με τις δύο στήλες που σας ενδιαφέρουν
+subset_df <- df[, c("Age", "Diabetes_012")]
+
+# Εκτέλεση Yuen's Test
+yuen_result <- yuen(subset_df$Age ~ subset_df$Diabetes_012)
+print(yuen_result)
+
+```
+The Z-score (or standard score) is a measurement calculated for each observation in a variable. It indicates how much the value of the observation deviates from the mean of the variable, calculated in units of standard deviation. Z-scores help us understand how each observation relates to the mean and how values are distributed in relation to the variability.
+
+Analyzing the results:
+
+1. **Z_Score_Age:** This is the new column added to the DataFrame, containing the Z-scores for the 'Age' variable. For each observation in the 'Age' column, the Z-score is calculated as how many standard deviations the value deviates from the mean of the 'Age' variable.
+
+Examples of interpretation:
+
+- A positive Z-score indicates that the value of the observation is higher than the mean.
+- A negative Z-score indicates that the value of the observation is lower than the mean.
+- A Z-score close to zero indicates that the value of the observation is close to the mean.
+The calculated Z-scores for the 'Age' variable provide valuable insights into how each observation relates to the average age. A positive Z-score indicates that the specific observation has a higher age compared to the average, while a negative Z-score suggests a lower age. Additionally, a Z-score close to zero signifies that the age of this observation is approximately at the same level as the average. Z-scores are useful for determining how much values deviate from the average, offering significant information about the distribution of ages within the entire set of observations.
+```{r}
+# Υποθέτουμε ότι το DataFrame σας ονομάζεται df και η μεταβλητή 'Age' βρίσκεται στη στήλη με το όνομα 'Age'
+# Υπολογισμός του Z-score για τη μεταβλητή 'Age'
+df$Z_Score_Age <- scale(df$Age)
+
+# Εμφάνιση των πρώτων λίγων γραμμών του DataFrame με τον νέο Z-score
+head(df)
+
+
+
+```
+The result of the Spearman's Rank Correlation test for the variables Age and PhysHlth is as follows:
+
+- **Spearman's rank correlation rho (ρ):** The value of ρ is approximately 0.0497.
+
+- **p-value:** The p-value is very low (less than 2.2e-16), indicating that the observed correlation is not due to randomness.
+
+- **Alternative hypothesis:** The alternative hypothesis states that the true value of ρ is not equal to zero, suggesting the existence of a correlation.
+
+Based on these results, we conclude that there is a statistically significant, but very weak, positive correlation between the Age and PhysHlth variables. However, this correlation is so small that it may not have practical significance, even though it is statistically significant due to the large number of observations.
+```{r}
+# Εκτέλεση Spearman’s Correlation
+df$PhysHlth <- as.numeric(df$PhysHlth)
+
+cor_result <- cor.test(df$Age, df$PhysHlth, method = "spearman")
+
+# Εκτύπωση των αποτελεσμάτων
+print(cor_result)
+
+
+```
+Correlation Test: This is the Kendall's Tau correlation test, which assesses the strength and direction of the relationship between the variables Age and PhysHlth.
+Test Statistics (z): The test statistic (z) is 11.962.
+p-value: The p-value is extremely small (p-value < 2.2e-16), suggesting strong evidence to reject the null hypothesis.
+Alternative Hypothesis: The alternative hypothesis indicates that the true Kendall's Tau is not equal to 0.
+Sample Estimates: The estimated value of Kendall's Tau (tau) is 0.03902985.
+Conclusion:
+The small p-value provides strong evidence to reject the null hypothesis, indicating that there is a statistically significant non-zero correlation between Age and PhysHlth. However, the correlation is weak, as indicated by the small estimated value of Kendall's Tau (0.03902985).
+
+```{r}
+# Assuming df is your dataframe
+result_kendall <- cor.test(df$Age, df$PhysHlth, method = "kendall")
+
+# Print the results
+print(result_kendall)
+```
+The logistic regression model has been successfully fitted to the data. Here's an interpretation of the results:
+
+### Model Coefficients:
+- **Intercept:** -3.448472
+- **Age:** 0.169185
+- **PhysHlth:** 0.039999
+- **Sex1 (assuming 1 represents Male):** 0.194791
+
+### Interpretation:
+- **Intercept:** The intercept is the estimated log-odds of the outcome variable being 1 when all predictor variables are zero. In this case, it's -3.448472.
+
+- **Age:** For each one-unit increase in Age, the log-odds of the outcome variable being 1 increases by 0.169185. Age has a statistically significant impact on the probability of the outcome.
+
+- **PhysHlth:** For each one-unit increase in PhysHlth, the log-odds of the outcome variable being 1 increases by 0.039999. PhysHlth has a statistically significant impact on the probability of the outcome.
+
+- **Sex1 (Male):** Assuming Sex1 represents males (1), being male increases the log-odds of the outcome variable being 1 by 0.194791 compared to females (Sex0). Being male has a statistically significant impact on the probability of the outcome.
+
+### Model Fit:
+- **Null Deviance:** 50279 on 57870 degrees of freedom. The null deviance measures how well the response variable is predicted by a model with no predictors (intercept-only model).
+
+- **Residual Deviance:** 47093 on 57867 degrees of freedom. The residual deviance measures how well the response variable is predicted by the model with predictors. A lower residual deviance indicates a better fit.
+
+- **AIC (Akaike Information Criterion):** 47101. AIC is a measure of the model's goodness of fit, considering the trade-off between the simplicity of the model and its ability to explain the data. Lower AIC values are preferred.
+
+### Significance:
+- All coefficients are highly significant (p-value < 0.001), indicating a strong association between the predictors and the probability of the outcome.
+
+### Summary:
+The logistic regression model suggests that Age, PhysHlth, and Gender (assuming 1 represents males) are significant predictors of Diabetes_012. The model provides insights into the direction and strength of these associations.
+```{r}
+# Load required libraries
+install.packages(c("tidyverse", "MASS"))
+library(tidyverse)
+library(MASS)
+
+
+
+# Check unique values in Diabetes_012
+unique_values <- unique(df$Diabetes_012)
+print(unique_values)
+
+# Convert Diabetes_012 to numeric (if needed)
+df$Diabetes_012 <- as.numeric(as.character(df$Diabetes_012))
+
+# Check for missing values in Diabetes_012
+missing_values <- sum(is.na(df$Diabetes_012))
+print(missing_values)
+
+# Check the data type of Diabetes_012
+print(str(df$Diabetes_012))
+
+# Check the range of values in Diabetes_012
+summary(df$Diabetes_012)
+
+# Ensure Diabetes_012 contains only 0s and 1s
+df$Diabetes_012 <- ifelse(df$Diabetes_012 > 1, 1, ifelse(df$Diabetes_012 < 0, 0, df$Diabetes_012))
+
+# Confirm the changes
+unique(df$Diabetes_012)
+
+# Check for missing values again
+missing_values_after <- sum(is.na(df$Diabetes_012))
+print(missing_values_after)
+
+# Check the data type of Diabetes_012 again
+print(str(df$Diabetes_012))
+
+# Now, fit the logistic regression model
+logistic_model <- glm(Diabetes_012 ~ Age + PhysHlth + Sex, data = df, family = binomial(link = "logit"))
+
+# Print the summary of the logistic regression model
+summary(logistic_model)
+
+```
+
+
+
+
+
+
+
+
